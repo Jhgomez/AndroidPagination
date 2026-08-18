@@ -8,8 +8,16 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @JsonClass(generateAdapter = true)
-data class PaginTmdbResponse(
-    @Json(name = "adult") val adult: Boolean,
+data class PagingTmdbResponse(
+    val page: Int,
+    val results: Array<TvShow>,
+    @Json(name = "total_pages") val totalPages: Int,
+    @Json(name = "total_results") val totalResults: Int
+)
+
+@JsonClass(generateAdapter = true)
+data class TvShow(
+    @Json(name = "") val adult: Boolean,
     @Json(name = "backdrop_path") val backdropPath: String,
     @Json(name = "genre_ids") val genreIds: Array<Int>,
     @Json(name = "id") val id: Int,
