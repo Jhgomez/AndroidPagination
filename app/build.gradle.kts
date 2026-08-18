@@ -75,7 +75,12 @@ dependencies {
     ksp("androidx.room3:room3-compiler:$room_version")
 
     // optional - Paging 3 Integration
-    implementation("androidx.room3:room3-paging:${room_version}")
+    implementation("androidx.room3:room3-paging:${room_version}") // add "androidx.paging:paging-common" transitively
+
+    val paging_version = "3.4.2"
+
+    // Jetpack Compose integration
+    implementation("androidx.paging:paging-compose:$paging_version")
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
