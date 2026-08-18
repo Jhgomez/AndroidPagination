@@ -82,6 +82,10 @@ dependencies {
     // Jetpack Compose integration
     implementation("androidx.paging:paging-compose:$paging_version")
 
+//    implementation("com.squareup.moshi:moshi:2.0.0-alpha.1")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:2.0.0-alpha.1")
+    implementation("com.squareup.retrofit2:converter-moshi:3.0.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
