@@ -66,7 +66,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    val room_version = "2.8.4"
+    val room_version = "3.0.1"
 
     implementation("androidx.room3:room3-runtime:$room_version")
 
