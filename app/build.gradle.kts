@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -16,10 +18,24 @@ android {
         applicationId = "com.demo.pagination"
         minSdk = 28
         targetSdk = 36
+        compileSdk = 37
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProps = Properties().apply {
+            val file = project.rootProject.file("local.properties")
+            if (file.exists()) {
+                file.inputStream().use { load(it) }
+            } else {
+                put("vacia", "vacia")
+            }
+        }
+
+        val myApiKey = localProps.getProperty("TMDB_API_KEY") ?: localProps.toString()
+
+        buildConfigField("String", "API_KEY", myApiKey)
     }
 
     buildTypes {
@@ -35,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
