@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 interface TmdbService {
     @GET("tv/popular")
-    suspend fun listRepos(
+    suspend fun getPopularShows(
         @Query("api_key") apiKey: String = BuildConfig.API_KEY,
         @Query("language") language: String = "en-US",
         @Query("page") page: Int
