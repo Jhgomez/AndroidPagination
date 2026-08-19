@@ -1,5 +1,6 @@
 package com.demo.pagination
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.demo.pagination.api.TvShow
@@ -9,7 +10,7 @@ import kotlinx.coroutines.launch
 class MainVm: ViewModel() {
     val service = tmdbService
 
-    val shows = mutableListOf<TvShow>()
+    val shows = mutableStateListOf<TvShow>()
 
     fun getNextPage() {
         viewModelScope.launch {
