@@ -9,7 +9,7 @@ val moshi = Moshi.Builder()
     .build()
 
 val client = Retrofit.Builder()
-    .baseUrl("https://api.themoviedb.org/3")
+    .baseUrl("https://api.themoviedb.org/3/")
     .addConverterFactory(MoshiConverterFactory.create(moshi))
     .build();
 
