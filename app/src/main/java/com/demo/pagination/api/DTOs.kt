@@ -17,21 +17,38 @@ data class PagingTmdbResponse(
 
 @JsonClass(generateAdapter = true)
 data class TvShow(
-    @Json(name = "") val adult: Boolean,
-    @Json(name = "backdrop_path") val backdropPath: String,
+    val adult: Boolean,
+    @Json(name = "backdrop_path") val backdropPath: String?,
     @Json(name = "genre_ids") val genreIds: Array<Int>,
-    @Json(name = "id") val id: Int,
+    val id: Int,
     @Json(name = "origin_country") val originCountry: Array<String>,
     @Json(name = "original_language") val originalLanguage: String,
     @Json(name = "original_name") val originalName: String,
-    @Json(name = "overview") val overview: String,
-    @Json(name = "popularity") val popularity: Double,
-    @Json(name = "poster_path") val posterPath: String,
+    val overview: String,
+    val popularity: Double,
+    @Json(name = "poster_path") val posterPath: String?,
     @Json(name = "first_air_date") val firstAirDate: LocalDate,
-    @Json(name = "name") val name: String,
+    val name: String,
     @Json(name = "vote_average") val voteAverage: Float,
     @Json(name = "vote_count") val voteCount: Int
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as TvShow
+
+        if (id != other.id) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
+        return result
+    }
+
+}
 
 object LocalDateAdapter {
     private val formatter = DateTimeFormatter.ISO_LOCAL_DATE
