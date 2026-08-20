@@ -19,3 +19,14 @@ import androidx.sqlite.driver.AndroidSQLiteDriver
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tvShowDao(): TvShowDao
 }
+
+var database: AppDatabase? = null
+
+fun getAppDatabase(context: Context): AppDatabase {
+    return database ?: Room.databaseBuilder<AppDatabase>(context = context, "pagination-demo-db")
+        .setDriver(AndroidSQLiteDriver())
+        .build()
+        .also {
+            database = it
+        }
+}
