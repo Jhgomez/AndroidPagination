@@ -23,6 +23,24 @@ interface TvShowDao {
 //    @Query("SELECT * FROM TvShowEntity")
 //    fun pagingSource(): PagingSource<Int, TvShowQuery>
 
+    @Transaction
+    suspend fun insertAll(query: Array<TvShowQuery>) {
+        val showArray = arrayOfNulls<TvShowEntity>(query.size)
+        val genresByShowArray = arrayOfNulls<Array<GenreReference>>(query.size)
+        val originCountryShowArray = arrayOfNulls<Array<OriginCountryReference>>(query.size)
 
+        query.forEachIndexed { index, query ->
+            showArray[index] = query.tvShow
+            genresByShowArray[index] = query.genreIds
+            originCountryShowArray[index] = query.originCountry
+        }
+
+        insertAll(showArray as Array<TvShowEntity>)
+
+        for (i in 0..query.size) {
+            insertAll(genresByShowArray[i]!!)
+            insertAll(originCountryShowArray[i]!!)
+        }
+    }
 }
 
