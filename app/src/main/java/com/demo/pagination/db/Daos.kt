@@ -37,7 +37,7 @@ interface TvShowDao {
 
         insertAll(showArray as Array<TvShowEntity>)
 
-        for (i in 0..query.size) {
+        for (i in 0..<query.size) {
             insertAll(genresByShowArray[i]!!)
             insertAll(originCountryShowArray[i]!!)
         }
