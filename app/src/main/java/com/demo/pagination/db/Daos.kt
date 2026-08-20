@@ -2,13 +2,16 @@ package com.demo.pagination.db
 
 import androidx.paging.PagingSource
 import androidx.room3.Dao
+import androidx.room3.DaoReturnTypeConverters
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Transaction
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import com.demo.pagination.api.TvShow
 
 @Dao
+@DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class) // we could annotate DB instead
 interface TvShowDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(shows: Array<TvShowEntity>)
@@ -20,8 +23,8 @@ interface TvShowDao {
     suspend fun insertAll(countries: Array<OriginCountryReference>)
 
 //    @Transaction
-//    @Query("SELECT * FROM TvShowEntity")
-//    fun pagingSource(): PagingSource<Int, TvShowQuery>
+    @Query("SELECT * FROM TvShowEntity")
+    fun pagingSource(): PagingSource<Int, TvShowEntity>
 
     @Transaction
     suspend fun insertAll(query: Array<TvShowQuery>) {

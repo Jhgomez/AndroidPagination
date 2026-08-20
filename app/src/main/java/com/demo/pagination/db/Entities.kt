@@ -52,12 +52,12 @@ data class TvShowQuery(
         parentColumns = ["id"],
         entityColumns = ["showId"]
     )
-    val genreIds: Array<GenreReference>,
+    val genreIds: List<GenreReference>,
     @Relation(
         parentColumns = ["id"],
         entityColumns = ["showId"]
     )
-    val originCountry: Array<OriginCountryReference>
+    val originCountry: List<OriginCountryReference>
 )
 
 class DateConverters {
