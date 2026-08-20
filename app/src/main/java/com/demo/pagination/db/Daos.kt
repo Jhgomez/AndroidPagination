@@ -9,40 +9,31 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import com.demo.pagination.api.TvShow
+import com.demo.pagination.feature.Page
 
 @Dao
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class) // we could annotate DB instead
 interface TvShowDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(shows: Array<TvShowEntity>)
+    suspend fun insertAllShows(shows: List<TvShowEntity>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(genres: Array<GenreReference>)
+    suspend fun insertAllGenres(genres: List<GenreReference>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(countries: Array<OriginCountryReference>)
-
-//    @Transaction
-    @Query("SELECT * FROM TvShowEntity")
-    fun pagingSource(): PagingSource<Int, TvShowEntity>
+    suspend fun insertAllCountries(countries: List<OriginCountryReference>)
 
     @Transaction
-    suspend fun insertAll(query: Array<TvShowQuery>) {
-        val showArray = arrayOfNulls<TvShowEntity>(query.size)
-        val genresByShowArray = arrayOfNulls<Array<GenreReference>>(query.size)
-        val originCountryShowArray = arrayOfNulls<Array<OriginCountryReference>>(query.size)
+    @Query("SELECT * FROM TvShowEntity")
+    fun pagingSource(): PagingSource<Int, TvShowQuery>
+
+    @Transaction
+    suspend fun insertAllGenres(query: Array<TvShowQuery>) {
+        insertAllShows(query.map(TvShowQuery::tvShow))
 
         query.forEachIndexed { index, query ->
-            showArray[index] = query.tvShow
-            genresByShowArray[index] = query.genreIds
-            originCountryShowArray[index] = query.originCountry
-        }
-
-        insertAll(showArray as Array<TvShowEntity>)
-
-        for (i in 0..<query.size) {
-            insertAll(genresByShowArray[i]!!)
-            insertAll(originCountryShowArray[i]!!)
+            insertAllGenres(query.genreIds)
+            insertAllCountries(query.originCountry)
         }
     }
 }
@@ -62,15 +53,15 @@ fun TvShow.toTvShowQuery(): TvShowQuery = TvShowQuery(
         voteAverage = voteAverage,
         voteCount = voteCount
     ),
-    genreIds = Array(genreIds.size) { index ->
+    genreIds = genreIds.map {
         GenreReference(
-            genreId = genreIds[index],
+            genreId = it,
             showId = id
         )
     },
-    originCountry = Array(originCountry.size) { index ->
+    originCountry = originCountry.map {
         OriginCountryReference(
-            originCountryId = originCountry[index],
+            originCountryId = it,
             showId = id
         )
     }
