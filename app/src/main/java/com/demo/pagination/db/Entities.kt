@@ -59,3 +59,19 @@ data class TvShowQuery(
     )
     val originCountry: Array<OriginCountryReference>
 )
+
+class DateConverters {
+    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+
+    @ColumnTypeConverter
+    fun fromLocalDate(value: LocalDate): String {
+        return value.format(formatter)
+    }
+
+    @ColumnTypeConverter
+    fun toLocalDate(value: String): LocalDate {
+        return value.let {
+            LocalDate.parse(it, formatter)
+        }
+    }
+}
