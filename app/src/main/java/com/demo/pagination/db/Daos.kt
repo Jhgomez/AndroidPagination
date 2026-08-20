@@ -44,3 +44,31 @@ interface TvShowDao {
     }
 }
 
+fun TvShow.toTvShowQuery(): TvShowQuery = TvShowQuery(
+    tvShow = TvShowEntity(
+        id = id,
+        adult = adult,
+        backdropPath = backdropPath,
+        originalLanguage = originalLanguage,
+        originalName = originalName,
+        overview = overview,
+        popularity = popularity,
+        posterPath = posterPath,
+        firstAirDate = firstAirDate,
+        name = name,
+        voteAverage = voteAverage,
+        voteCount = voteCount
+    ),
+    genreIds = Array(genreIds.size) { index ->
+        GenreReference(
+            genreId = genreIds[index],
+            showId = id
+        )
+    },
+    originCountry = Array(originCountry.size) { index ->
+        OriginCountryReference(
+            originCountryId = originCountry[index],
+            showId = id
+        )
+    }
+)
