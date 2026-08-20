@@ -25,7 +25,7 @@ data class TvShow(
     @Json(name = "original_language") val originalLanguage: String,
     @Json(name = "original_name") val originalName: String,
     val overview: String,
-    val popularity: Double,
+    val popularity: Float,
     @Json(name = "poster_path") val posterPath: String?,
     @Json(name = "first_air_date") val firstAirDate: LocalDate,
     val name: String,
