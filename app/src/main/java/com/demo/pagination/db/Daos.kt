@@ -39,39 +39,20 @@ interface TvShowDao {
         }
     }
 
-    @Transaction
-    @Delete
-    suspend fun deleteGenres(genres: List<GenreReference>)
+    @Query("DELETE FROM GenreReference")
+    suspend fun deleteGenres()
+
+    @Query("DELETE FROM OriginCountryReference")
+    suspend fun deleteCountries()
+
+    @Query("DELETE FROM TvShowEntity")
+    suspend fun deleteTvShows()
 
     @Transaction
-    @Delete
-    suspend fun deleteCountries(countries: List<OriginCountryReference>)
-
-    @Transaction
-    @Delete
-    suspend fun deleteTvShows(shows: List<TvShowEntity>)
-
-    @Transaction
-    suspend fun deleteShowsWrapper(shows: List<TvShowQuery>) {
-        shows.forEach { show ->
-            deleteGenres(show.genreIds)
-            deleteCountries(show.originCountry)
-        }
-
-        deleteTvShows(shows.map(TvShowQuery::tvShow))
-    }
-
-//    @Query("DELETE * FROM TvShow WHERE id = :id")
-//    suspend fun deleteShowsWrapperByQuery(shows: List<TvShowQuery>)
-
-    @Query("DELETE FROM TvShow WHERE id = :id")
-    suspend fun deleteShowsWrapperByQuery(shows: List<TvShowQuery>) {
-        shows.forEach { show ->
-            deleteGenres(show.genreIds)
-            deleteCountries(show.originCountry)
-        }
-
-        deleteTvShows(shows.map(TvShowQuery::tvShow))
+    suspend fun deleteAllTvShows() {
+        deleteCountries()
+        deleteGenres()
+        deleteTvShows()
     }
 }
 
@@ -112,6 +93,6 @@ interface PageIndexesDao {
     @Query("SELECT * FROM PageIndexesEntity WHERE key = :id")
     suspend fun select(id: String): PageIndexesEntity?
 
-    @Query("DELETE FROM PageIndexesEntity WHERE key = :id")
-    suspend fun delete(id: String): Int
+    @Query("DELETE FROM PageIndexesEntity")
+    suspend fun deleteAll(): Int
 }
