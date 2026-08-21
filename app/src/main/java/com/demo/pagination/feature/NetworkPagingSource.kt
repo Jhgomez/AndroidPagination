@@ -62,10 +62,10 @@ class NetworkPagingSource(
         // when this.invalidate() method is called, when this happens we need to find the closest page
         // where the user was at, meaning this method basically returns the index of the page the user
         // was at when invalidation happens so the load method can retrieve the key/index and refetch the
-        // new data, btw this PagingSource is passed in a factory to the Pager object, whenever we invalidate it,
-        // the factory triggers again and therefore returns a new instance of this paging source with the
-        // updated PagingState, this happens because these objects are immutable, as stated below, in
-        // the PagingSource deffinition.
+        // new data, so load() is called whe this is called, btw this PagingSource is passed in a factory
+        // to the Pager object, whenever we invalidate it, the factory triggers again and therefore returns
+        // a new instance of this paging source with the updated PagingState, this happens because these
+        // objects are immutable, as stated below in the PagingSource definition.
 
         // *  An instance of a [PagingSource] is used to load pages of data for an instance of [PagingData].
         // *
