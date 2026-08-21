@@ -33,7 +33,12 @@ class NetworkPagingMediator(
         loadType: LoadType,
         state: PagingState<Int, TvShowQuery>
     ): MediatorResult {
-        state.config.maxSize
+        val highestIndexInfo: PageIndexesEntity? =
+            pageIndexesDao.select(HIGHEST_INDEXES_ID)
+
+        val lowestIndexInfo: PageIndexesEntity? =
+            pageIndexesDao.select(LOWEST_INDEXES_ID)
+
         return try {
             // The network load method takes an optional after=<user.id>
             // parameter. For every page after the first, pass the last user
@@ -45,11 +50,6 @@ class NetworkPagingMediator(
                         val anchorPage = state.closestPageToPosition(anchorPosition)
 
                         // if we are here our index info is impossible to be null
-                        val highestIndexInfo: PageIndexesEntity? =
-                            pageIndexesDao.select(HIGHEST_INDEXES_ID)
-
-                        val lowestIndexInfo: PageIndexesEntity? =
-                            pageIndexesDao.select(LOWEST_INDEXES_ID)
 
                         // also, in our logic either highest and lowest are null at same time
                         // or they are not, it is impossible to just one be null
@@ -82,17 +82,16 @@ class NetworkPagingMediator(
                 LoadType.PREPEND ->
                     return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    val indexInfo: PageIndexesEntity? = pageIndexesDao.select(HIGHEST_INDEXES_ID)
 
                     // The logic that determines what is the last item could be anything but in our
                     // case it is the index of 500, TMDB returns errors for page/index higher than 500
-                    if (indexInfo?.index == 500) {
+                    if (highestIndexInfo?.index == 500) {
                         return MediatorResult.Success(
                             endOfPaginationReached = true
                         )
                     }
 
-                    (indexInfo?.index?: 0) + 1
+                    (highestIndexInfo?.index?: 0) + 1
                 }
             }
 
@@ -109,6 +108,14 @@ class NetworkPagingMediator(
                     LoadType.REFRESH -> TODO()
                     LoadType.PREPEND -> TODO()
                     LoadType.APPEND -> {
+                        response.body()?.results?.also {
+                            tvShowDao.insertAll(
+                                Array(it.size) { index ->
+                                    it[index].toTvShowQuery()
+                                }
+                            )
+                        }
+
                         pageIndexesDao.upsert(
                             PageIndexesEntity(
                                 key = HIGHEST_INDEXES_ID,
@@ -116,18 +123,10 @@ class NetworkPagingMediator(
                             )
                         )
 
-                        if (index == 1) {
+                        if (lowestIndexInfo == null) {
                             PageIndexesEntity(
                                 key = LOWEST_INDEXES_ID,
                                 index = index
-                            )
-                        }
-
-                        response.body()?.results?.also {
-                            tvShowDao.insertAll(
-                                Array(it.size) { index ->
-                                    it[index].toTvShowQuery()
-                                }
                             )
                         }
                     }
