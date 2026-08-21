@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
 
                             items(
                                 count = shows.itemCount,
-                                key = shows.itemKey { it.tvShow.id }
+                                key = shows.itemKey { it.tvShow.index }
                             ) { index ->
                                 val show = shows[index]
                                 if (show != null) {
