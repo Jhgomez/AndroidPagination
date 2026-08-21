@@ -1,5 +1,6 @@
 package com.demo.pagination.feature
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -32,7 +33,6 @@ class NetworkPagingMediator(
     private val tvShowDao = showsDb.tvShowDao()
     private val pageIndexesDao: PageIndexesDao = showsDb.pageIndexesDao()
 
-
     private val HIGHEST_INDEXES_ID = "HIGHEST_INDEX"
     private val LOWEST_INDEXES_ID = "LOWEST_INDEX"
 
@@ -47,6 +47,9 @@ class NetworkPagingMediator(
         val lowestIndexInfo: PageIndexesEntity? =
             pageIndexesDao.select(LOWEST_INDEXES_ID)
 
+        var firstVisibleItem = -1
+        var visibleItemsCount = -1
+
         return try {
             // The network load method takes an optional after=<user.id>
             // parameter. For every page after the first, pass the last user
@@ -54,23 +57,39 @@ class NetworkPagingMediator(
             // pass null to load the first page.
             val pageIndex = when (loadType) {
                 LoadType.REFRESH -> {
-                    state.anchorPosition?.let { anchorPosition ->
+                    val visibleItemsPageIndex = ceil(
+                        firstVisibleItemProducer() /
+                                state.config.pageSize.toFloat()
+                    ).toInt()
 
-                        // if we are here our index info is impossible to be null
+                    val pagerPageIndex = visibleItemsPageIndex.coerceAtLeast(1)
 
-                        // also, in our logic either highest and lowest are null at same time
-                        // or they are not, it is impossible to just one be null
-                        if (highestIndexInfo == null && lowestIndexInfo == null) {
-                            1
-                        } else {
-                            // Here our index info is not null
-                            // if prevKey == null -> anchorPage is the first page.
-                            val currentLocalIndex =
-                                ceil(anchorPosition / state.config.pageSize.toFloat()).toInt() - 1
+                    firstVisibleItem = firstVisibleItemProducer() - ((pagerPageIndex - 1) * state.config.pageSize)
+                    visibleItemsCount = firstVisibleItemProducer()
 
-                            lowestIndexInfo!!.index + currentLocalIndex
-                        }
-                    }
+                    pagerPageIndex
+
+                    // relying on anchor position in a mediator is not the best approach since
+                    // when used in conjunction of functions like PagingState.closestPageToPosition()
+                    // return incorrect values here, this is because of the underlying behaviors of
+                    // the PageSource that Room creates
+//                    state.anchorPosition?.let { anchorPosition ->
+//
+//                        // if we are here our index info is impossible to be null
+//
+//                        // also, in our logic either highest and lowest are null at same time
+//                        // or they are not, it is impossible to just one be null
+//                        if (highestIndexInfo == null && lowestIndexInfo == null) {
+//                            1
+//                        } else {
+//                            // Here our index info is not null
+//                            // if prevKey == null -> anchorPage is the first page.
+//                            val currentLocalIndex =
+//                                ceil(anchorPosition / state.config.pageSize.toFloat()).toInt() - 1
+//
+//                            lowestIndexInfo!!.index + currentLocalIndex
+//                        }
+//                    }
                 }
                 // In this example, you never need to prepend, since REFRESH
                 // will always load the first page in the list. Immediately
@@ -110,7 +129,7 @@ class NetworkPagingMediator(
                                 pageIndexesDao.deleteAll()
                             }
 
-                            response.body()?.results?.also {
+                            response.body()?.results?.copyOfRange(firstVisibleItem, state.config.pageSize -1)?.also {
                                 val baseIndex = (pageIndex - 1) * state.config.pageSize
                                 tvShowDao.insertAll(
                                     Array(it.size) { listIndex ->
