@@ -8,6 +8,7 @@ import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Transaction
+import androidx.room3.Upsert
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import com.demo.pagination.api.TvShow
 import com.demo.pagination.feature.Page
@@ -29,7 +30,7 @@ interface TvShowDao {
     fun pagingSource(): PagingSource<Int, TvShowQuery>
 
     @Transaction
-    suspend fun insertAllGenres(query: Array<TvShowQuery>) {
+    suspend fun insertAll(query: Array<TvShowQuery>) {
         insertAllShows(query.map(TvShowQuery::tvShow))
 
         query.forEachIndexed { index, query ->
@@ -105,11 +106,11 @@ fun TvShow.toTvShowQuery(): TvShowQuery = TvShowQuery(
 
 @Dao
 interface PageIndexesDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun upsert(pageIndexes: PageIndexesEntity)
+    @Upsert
+    fun upsert(pageIndexes: PageIndexesEntity): Int
 
     @Query("SELECT * FROM PageIndexesEntity WHERE key = :id")
-    fun select(id: String): PageIndexesEntity
+    fun select(id: String): PageIndexesEntity?
 
     @Query("DELTE * FROM PageIndexesEntity WHERE key = :id")
     fun delete(id: String)
