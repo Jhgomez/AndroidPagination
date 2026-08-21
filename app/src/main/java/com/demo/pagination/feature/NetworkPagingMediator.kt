@@ -1,6 +1,5 @@
 package com.demo.pagination.feature
 
-import android.net.http.HttpException
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -42,7 +41,40 @@ class NetworkPagingMediator(
             // pass null to load the first page.
             val index = when (loadType) {
                 LoadType.REFRESH -> {
-                    -1
+                    state.anchorPosition?.let { anchorPosition ->
+                        val anchorPage = state.closestPageToPosition(anchorPosition)
+
+                        // if we are here our index info is impossible to be null
+                        val highestIndexInfo: PageIndexesEntity? =
+                            pageIndexesDao.select(HIGHEST_INDEXES_ID)
+
+                        val lowestIndexInfo: PageIndexesEntity? =
+                            pageIndexesDao.select(LOWEST_INDEXES_ID)
+
+                        // also, in our logic either highest and lowest are null at same time
+                        // or they are not, it is impossible to just one be null
+                        if (highestIndexInfo == null && lowestIndexInfo == null) {
+                            1
+                        } else {
+                            // Here our index info is not null
+                            // if prevKey == null -> anchorPage is the first page.
+                            val currentPage = anchorPage?.prevKey?.let { prevPage ->
+                                prevPage + 1
+                            }
+                            // if nextKey == null -> anchorPage is the last page.
+                                ?: anchorPage?.nextKey?.let { nextPage ->
+                                    nextPage - 1
+                                } ?: 1
+
+                            if (highestIndexInfo!!.index == 1) {
+                                highestIndexInfo.index
+                            } else {
+                                // this allows us to refresh correctly and fetch from page user
+                                // was at
+                                highestIndexInfo.index - currentPage
+                            }
+                        }
+                    } ?: 1 // this should only happen on first load, anchor is only null at the first load
                 }
                 // In this example, you never need to prepend, since REFRESH
                 // will always load the first page in the list. Immediately
