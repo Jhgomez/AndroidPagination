@@ -58,21 +58,9 @@ class NetworkPagingMediator(
                         } else {
                             // Here our index info is not null
                             // if prevKey == null -> anchorPage is the first page.
-                            val currentPage = anchorPage?.prevKey?.let { prevPage ->
-                                prevPage + 1
-                            }
-                            // if nextKey == null -> anchorPage is the last page.
-                                ?: anchorPage?.nextKey?.let { nextPage ->
-                                    nextPage - 1
-                                } ?: 1
+                            val currentLocalIndex = state.pages.indexOf(anchorPage)
 
-                            if (highestIndexInfo!!.index == 1) {
-                                highestIndexInfo.index
-                            } else {
-                                // this allows us to refresh correctly and fetch from page user
-                                // was at
-                                highestIndexInfo.index - currentPage
-                            }
+                            lowestIndexInfo!!.index + currentLocalIndex
                         }
                     }
                 }
