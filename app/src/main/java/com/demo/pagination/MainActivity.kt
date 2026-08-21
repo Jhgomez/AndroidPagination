@@ -1,16 +1,19 @@
 package com.demo.pagination
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -71,36 +74,26 @@ class MainActivity : ComponentActivity() {
             val shows = vm.tvShowsPagingFlow.collectAsLazyPagingItems()
 
             PaginationTheme {
-                Column(Modifier.fillMaxSize()) {
-                    Button({
-                        vm.invalidate()
-                        shows.refresh()
-                    }) {
-                        Text("Invalidate")
-                    }
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(Modifier.fillMaxSize()) {
+                        Button({
+                            vm.invalidate()
+                            shows.refresh()
+                            Log.d("countLazy", state.layoutInfo.visibleItemsInfo.size.toString())
+                            Log.d("firstIndex", state.firstVisibleItemIndex.toString())
+                        }) {
+                            Text("Invalidate")
+                        }
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        state = state
-                    ) {
-                        if (shows.loadState.refresh == LoadState.Loading) { // for invalidations and refreshes
-                            // careful here as rendering this UI in the lazy list when this is ture
-                            // will make recomposoe the below list all over again, we could gain
-                            // from already visible keys, so you might like to show this loading without
-                            // removing the whole list when it happens
-                            item {
-                                CircularProgressIndicator(
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentWidth(Alignment.CenterHorizontally)
-                                )
-                            }
-                        } else {
-                            if (shows.loadState.source.prepend == LoadState.Loading) { // could use shows.loadState.prepend
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            state = state
+                        ) {
+                            if (shows.loadState.source.prepend == LoadState.Loading && // could use shows.loadState.prepend
+                                shows.loadState.refresh != LoadState.Loading) {  // so only one loading indicator is shown
                                 item {
                                     CircularProgressIndicator(
                                         modifier =
@@ -130,10 +123,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            if (
-                                shows.loadState.source.append == LoadState.Loading ||
-                                shows.loadState.source.refresh == LoadState.Loading
-                            ) {
+                            if (shows.loadState.source.append == LoadState.Loading) {
                                 item {
                                     CircularProgressIndicator(
                                         modifier =
@@ -143,6 +133,23 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
+                        }
+                    }
+
+                    if (shows.loadState.refresh == LoadState.Loading) { // for invalidations and refreshes
+                        // careful here as rendering this UI in the lazy list when this is ture
+                        // will make recompose the below list all over again, we could gain
+                        // from already visible keys, so you might like to show this loading without
+                        // removing the whole list when it happens
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier =
+                                    Modifier
+                                        .size(48.dp)
+                            )
                         }
                     }
                 }
