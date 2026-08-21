@@ -56,8 +56,9 @@ interface TvShowDao {
     }
 }
 
-fun TvShow.toTvShowQuery(): TvShowQuery = TvShowQuery(
+fun TvShow.toTvShowQuery(index: Int): TvShowQuery = TvShowQuery(
     tvShow = TvShowEntity(
+        index = index,
         id = id,
         adult = adult,
         backdropPath = backdropPath,
