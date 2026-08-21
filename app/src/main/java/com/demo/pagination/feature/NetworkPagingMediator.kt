@@ -111,16 +111,10 @@ class NetworkPagingMediator(
                             }
 
                             response.body()?.results?.also {
-                                val baseIndex = pageIndex * state.config.pageSize
+                                val baseIndex = (pageIndex - 1) * state.config.pageSize
                                 tvShowDao.insertAll(
                                     Array(it.size) { listIndex ->
-                                        it[listIndex].toTvShowQuery(
-                                            if (pageIndex > 1) {
-                                                listIndex + baseIndex
-                                            } else {
-                                                listIndex
-                                            }
-                                        )
+                                        it[listIndex].toTvShowQuery(listIndex + baseIndex)
                                     }
                                 )
                             }
@@ -142,16 +136,10 @@ class NetworkPagingMediator(
                         LoadType.APPEND -> {
 
                             response.body()?.results?.also {
-                                val baseIndex = pageIndex * state.config.pageSize
+                                val baseIndex = (pageIndex - 1) * state.config.pageSize
                                 tvShowDao.insertAll(
                                     Array(it.size) { listIndex ->
-                                        it[listIndex].toTvShowQuery(
-                                            if (pageIndex > 1) {
-                                                listIndex + baseIndex
-                                            } else {
-                                                listIndex
-                                            }
-                                        )
+                                        it[listIndex].toTvShowQuery(listIndex + baseIndex)
                                     }
                                 )
                             }
