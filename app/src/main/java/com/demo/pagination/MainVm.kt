@@ -20,6 +20,7 @@ import kotlin.collections.addAll
 
 class MainVm(application: Application): AndroidViewModel(application) {
     val service = tmdbService
+    val db = getAppDatabase(getApplication<Application>().applicationContext)
 
     val shows = mutableStateListOf<TvShow>()
 
