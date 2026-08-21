@@ -12,7 +12,6 @@ import com.demo.pagination.db.PageIndexesDao
 import com.demo.pagination.db.PageIndexesEntity
 import com.demo.pagination.db.TvShowQuery
 import com.demo.pagination.db.toTvShowQuery
-import java.io.IOException
 
 
 /**
@@ -20,10 +19,9 @@ import java.io.IOException
  */
 @OptIn(ExperimentalPagingApi::class)
 class NetworkPagingMediator(
-    private val query: String,
     private val showsDb: AppDatabase,
     private val tmdbService: TmdbService
-) : RemoteMediator<Page, TvShowQuery>() {
+) : RemoteMediator<Int, TvShowQuery>() {
     private val tvShowDao = showsDb.tvShowDao()
     private val pageIndexesDao: PageIndexesDao = showsDb.pageIndexesDao()
 
@@ -34,7 +32,7 @@ class NetworkPagingMediator(
     @OptIn(ExperimentalPagingApi::class)
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Page, TvShowQuery>
+        state: PagingState<Int, TvShowQuery>
     ): MediatorResult {
         state.config.maxSize
         return try {
@@ -100,9 +98,7 @@ class NetworkPagingMediator(
             MediatorResult.Success(
                 endOfPaginationReached = index == 500
             )
-        } catch (e: IOException) {
-            MediatorResult.Error(e)
-        } catch (e: HttpException) {
+        } catch (e: Exception) {
             MediatorResult.Error(e)
         }
     }
