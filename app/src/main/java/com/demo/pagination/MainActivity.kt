@@ -55,33 +55,58 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        items(
-                            count = shows.itemCount,
-                            key = shows.itemKey { it.id }
-                        ) { index ->
-                            val show = shows[index]
-                            if (show != null) {
-                                Text(
-                                    text = index.toString(),
-                                    color = Color.White,
-                                    modifier = Modifier.height(78.dp).background(Color.Blue),
-                                    textAlign = TextAlign.Center
-                                )
-                            } else {
-                                Text("Placeholder")
-                            }
-                        }
-
-                        if (
-                            shows.loadState.prepend == LoadState.Loading || // prepend not being called
-                            shows.loadState.append == LoadState.Loading ||
-                            shows.loadState.refresh == LoadState.Loading // refresh not being called
-                        ) {
+                        if (shows.loadState.refresh == LoadState.Loading) { // for invalidations and refreshes
                             item {
                                 CircularProgressIndicator(
                                     modifier =
-                                        Modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally)
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentWidth(Alignment.CenterHorizontally)
                                 )
+                            }
+                        } else {
+                            if (shows.loadState.source.prepend == LoadState.Loading) { // could use shows.loadState.prepend
+                                item {
+                                    CircularProgressIndicator(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentWidth(Alignment.CenterHorizontally)
+                                    )
+                                }
+                            }
+
+                            items(
+                                count = shows.itemCount,
+                                key = shows.itemKey { it.id }
+                            ) { index ->
+                                val show = shows[index]
+                                if (show != null) {
+                                    Text(
+                                        text = index.toString(),
+                                        color = Color.White,
+                                        modifier = Modifier
+                                            .height(78.dp)
+                                            .background(Color.Blue),
+                                        textAlign = TextAlign.Center
+                                    )
+                                } else {
+                                    Text("Placeholder")
+                                }
+                            }
+
+                            if (
+                                shows.loadState.source.append == LoadState.Loading ||
+                                shows.loadState.source.refresh == LoadState.Loading
+                            ) {
+                                item {
+                                    CircularProgressIndicator(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentWidth(Alignment.CenterHorizontally)
+                                    )
+                                }
                             }
                         }
                     }
