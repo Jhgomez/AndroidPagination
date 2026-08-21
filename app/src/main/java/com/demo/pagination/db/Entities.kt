@@ -11,7 +11,8 @@ import java.time.format.DateTimeFormatter
 
 @Entity
 data class TvShowEntity(
-    @PrimaryKey 
+    @PrimaryKey
+    val index: Int,
     val id: Int,
     val adult: Boolean,
     @ColumnInfo("backdrop_path") 
