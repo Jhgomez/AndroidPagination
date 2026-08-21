@@ -45,7 +45,7 @@ class NetworkPagingMediator(
             // parameter. For every page after the first, pass the last user
             // ID to let it continue from where it left off. For REFRESH,
             // pass null to load the first page.
-            val index = when (loadType) {
+            val pageIndex = when (loadType) {
                 LoadType.REFRESH -> {
                     state.anchorPosition?.let { anchorPosition ->
 
@@ -84,12 +84,12 @@ class NetworkPagingMediator(
                 }
             }
 
-            if (index != null) {
+            if (pageIndex != null) {
                 // Suspending network load via Retrofit. This doesn't need to be
                 // wrapped in a withContext(Dispatcher.IO) { ... } block since
                 // Retrofit's Coroutine CallAdapter dispatches on a worker
                 // thread.
-                val response = tmdbService.getPopularShows(page = index)
+                val response = tmdbService.getPopularShows(page = pageIndex)
 
                 showsDb.withWriteTransaction<Unit> {
 
@@ -104,9 +104,16 @@ class NetworkPagingMediator(
                             }
 
                             response.body()?.results?.also {
+                                val baseIndex = pageIndex * state.config.pageSize
                                 tvShowDao.insertAll(
-                                    Array(it.size) { index ->
-                                        it[index].toTvShowQuery()
+                                    Array(it.size) { listIndex ->
+                                        it[listIndex].toTvShowQuery(
+                                            if (pageIndex > 1) {
+                                                listIndex + baseIndex
+                                            } else {
+                                                listIndex
+                                            }
+                                        )
                                     }
                                 )
                             }
@@ -114,23 +121,30 @@ class NetworkPagingMediator(
                             pageIndexesDao.upsert(
                                 PageIndexesEntity(
                                     key = HIGHEST_INDEXES_ID,
-                                    index = index
+                                    index = pageIndex
                                 )
                             )
 
                             pageIndexesDao.upsert(
                                 PageIndexesEntity(
                                     key = LOWEST_INDEXES_ID,
-                                    index = index
+                                    index = pageIndex
                                 )
                             )
                         }
                         LoadType.APPEND -> {
 
                             response.body()?.results?.also {
+                                val baseIndex = pageIndex * state.config.pageSize
                                 tvShowDao.insertAll(
-                                    Array(it.size) { index ->
-                                        it[index].toTvShowQuery()
+                                    Array(it.size) { listIndex ->
+                                        it[listIndex].toTvShowQuery(
+                                            if (pageIndex > 1) {
+                                                listIndex + baseIndex
+                                            } else {
+                                                listIndex
+                                            }
+                                        )
                                     }
                                 )
                             }
@@ -138,7 +152,7 @@ class NetworkPagingMediator(
                             pageIndexesDao.upsert(
                                 PageIndexesEntity(
                                     key = HIGHEST_INDEXES_ID,
-                                    index = index
+                                    index = pageIndex
                                 )
                             )
 
@@ -146,7 +160,7 @@ class NetworkPagingMediator(
                                 pageIndexesDao.upsert(
                                     PageIndexesEntity(
                                         key = LOWEST_INDEXES_ID,
-                                        index = index
+                                        index = pageIndex
                                     )
                                 )
                             }
@@ -156,7 +170,7 @@ class NetworkPagingMediator(
             }
 
             MediatorResult.Success(
-                endOfPaginationReached = index == 500
+                endOfPaginationReached = pageIndex == 500
             )
         } catch (e: Exception) {
             MediatorResult.Error(e)
