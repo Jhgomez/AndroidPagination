@@ -77,7 +77,7 @@ class DateConverters {
 }
 
 @Entity
-data class PageIndexes(
+data class PageIndexesEntity(
     @PrimaryKey
     val key: String,
     val lowestIndex: Int,

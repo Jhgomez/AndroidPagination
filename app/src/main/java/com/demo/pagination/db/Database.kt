@@ -11,7 +11,8 @@ import androidx.sqlite.driver.AndroidSQLiteDriver
     entities = [
         TvShowEntity::class,
         GenreReference::class,
-        OriginCountryReference::class
+        OriginCountryReference::class,
+        PageIndexesEntity::class
     ],
     version = 1
 )
