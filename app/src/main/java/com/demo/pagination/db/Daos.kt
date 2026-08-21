@@ -3,6 +3,7 @@ package com.demo.pagination.db
 import androidx.paging.PagingSource
 import androidx.room3.Dao
 import androidx.room3.DaoReturnTypeConverters
+import androidx.room3.Delete
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
@@ -35,6 +36,41 @@ interface TvShowDao {
             insertAllGenres(query.genreIds)
             insertAllCountries(query.originCountry)
         }
+    }
+
+    @Transaction
+    @Delete
+    suspend fun deleteGenres(genres: List<GenreReference>)
+
+    @Transaction
+    @Delete
+    suspend fun deleteCountries(countries: List<OriginCountryReference>)
+
+    @Transaction
+    @Delete
+    suspend fun deleteTvShows(shows: List<TvShowEntity>)
+
+    @Transaction
+    suspend fun deleteShowsWrapper(shows: List<TvShowQuery>) {
+        shows.forEach { show ->
+            deleteGenres(show.genreIds)
+            deleteCountries(show.originCountry)
+        }
+
+        deleteTvShows(shows.map(TvShowQuery::tvShow))
+    }
+
+//    @Query("DELETE * FROM TvShow WHERE id = :id")
+//    suspend fun deleteShowsWrapperByQuery(shows: List<TvShowQuery>)
+
+    @Query("DELETE * FROM TvShow WHERE id = :id")
+    suspend fun deleteShowsWrapperByQuery(shows: List<TvShowQuery>) {
+        shows.forEach { show ->
+            deleteGenres(show.genreIds)
+            deleteCountries(show.originCountry)
+        }
+
+        deleteTvShows(shows.map(TvShowQuery::tvShow))
     }
 }
 
