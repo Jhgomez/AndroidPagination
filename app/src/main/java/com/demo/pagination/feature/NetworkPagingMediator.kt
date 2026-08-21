@@ -105,9 +105,18 @@ class NetworkPagingMediator(
 
                 when (loadType) {
 //                    userDao.deleteShowsWrapper()
-                    LoadType.REFRESH -> TODO()
                     LoadType.PREPEND -> TODO()
-                    LoadType.APPEND -> {
+                    LoadType.APPEND, LoadType.REFRESH -> {
+                        if (
+                            loadType == LoadType.REFRESH &&
+                            highestIndexInfo != null &&
+                            lowestIndexInfo != null
+                        ) {
+                            // this means data already exists and we need to delete it
+                            tvShowDao.deleteAllTvShows()
+                            pageIndexesDao.deleteAll()
+                        }
+
                         response.body()?.results?.also {
                             tvShowDao.insertAll(
                                 Array(it.size) { index ->
