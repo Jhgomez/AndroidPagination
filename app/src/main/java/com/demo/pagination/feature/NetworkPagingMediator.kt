@@ -11,6 +11,7 @@ import com.demo.pagination.db.PageIndexesDao
 import com.demo.pagination.db.PageIndexesEntity
 import com.demo.pagination.db.TvShowQuery
 import com.demo.pagination.db.toTvShowQuery
+import kotlin.math.ceil
 
 
 /**
@@ -47,7 +48,6 @@ class NetworkPagingMediator(
             val index = when (loadType) {
                 LoadType.REFRESH -> {
                     state.anchorPosition?.let { anchorPosition ->
-                        val anchorPage = state.closestPageToPosition(anchorPosition)
 
                         // if we are here our index info is impossible to be null
 
@@ -58,7 +58,8 @@ class NetworkPagingMediator(
                         } else {
                             // Here our index info is not null
                             // if prevKey == null -> anchorPage is the first page.
-                            val currentLocalIndex = state.pages.indexOf(anchorPage)
+                            val currentLocalIndex =
+                                ceil(anchorPosition / state.config.pageSize.toFloat()).toInt() - 1
 
                             lowestIndexInfo!!.index + currentLocalIndex
                         }
@@ -95,16 +96,36 @@ class NetworkPagingMediator(
                     when (loadType) {
 //                    userDao.deleteShowsWrapper()
                         LoadType.PREPEND -> TODO()
-                        LoadType.APPEND, LoadType.REFRESH -> {
-                            if (
-                                loadType == LoadType.REFRESH &&
-                                highestIndexInfo != null &&
-                                lowestIndexInfo != null
-                            ) {
+                        LoadType.REFRESH -> {
+                            if (highestIndexInfo != null && lowestIndexInfo != null) {
                                 // this means data already exists and we need to delete it
                                 tvShowDao.deleteAllTvShows()
                                 pageIndexesDao.deleteAll()
                             }
+
+                            response.body()?.results?.also {
+                                tvShowDao.insertAll(
+                                    Array(it.size) { index ->
+                                        it[index].toTvShowQuery()
+                                    }
+                                )
+                            }
+
+                            pageIndexesDao.upsert(
+                                PageIndexesEntity(
+                                    key = HIGHEST_INDEXES_ID,
+                                    index = index
+                                )
+                            )
+
+                            pageIndexesDao.upsert(
+                                PageIndexesEntity(
+                                    key = LOWEST_INDEXES_ID,
+                                    index = index
+                                )
+                            )
+                        }
+                        LoadType.APPEND -> {
 
                             response.body()?.results?.also {
                                 tvShowDao.insertAll(
