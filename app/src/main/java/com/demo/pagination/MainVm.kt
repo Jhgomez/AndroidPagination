@@ -20,7 +20,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.collections.addAll
 
-class MainVm(application: Application): AndroidViewModel(application) {
+class MainVm(
+    application: Application,
+    private val firstVisibleItemProducer: () -> Int,
+    private val visibleItemsCountProducer: () -> Int
+): AndroidViewModel(application) {
     val service = tmdbService
     val db = getAppDatabase(getApplication<Application>().applicationContext)
 
@@ -43,7 +47,7 @@ class MainVm(application: Application): AndroidViewModel(application) {
         // Configure how data is loaded by passing additional properties to
         // PagingConfig, such as pageSize and enabling or disabling placeholders.
         config = PagingConfig(
-            pageSize = 20, // TMBD default page size is 20 and that cant be change, so we metter match it up here
+            pageSize = 20, // TMBD default page size is 20 and that cant be change, so we better match it up here
             enablePlaceholders = true,
             prefetchDistance = 1,
             initialLoadSize = 1,
@@ -55,7 +59,9 @@ class MainVm(application: Application): AndroidViewModel(application) {
         },
         remoteMediator = NetworkPagingMediator(
             showsDb = db,
-            tmdbService = service
+            tmdbService = service,
+            firstVisibleItemProducer = firstVisibleItemProducer,
+            visibleItemsCountProducer = visibleItemsCountProducer
         )
     )
         .flow
