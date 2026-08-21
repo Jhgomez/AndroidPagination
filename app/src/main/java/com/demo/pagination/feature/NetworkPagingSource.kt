@@ -52,18 +52,30 @@ class NetworkPagingSource(
 
 
     // PagingState has a list of Pages, each page would know its key and its type, in this case it
-    // would be LoadResult.Page<Page, TvShow>
+    // would be LoadResult.Page<Page, TvShow>, these pages is what we have produced in the load method
+    // remember they contain the next and prev key/index which is what we use to determine the actual
+    // current page
     override fun getRefreshKey(state: PagingState<Page, TvShow>): Page? {
         // This function is called when data is invalidated, invalidation could happen on user request(refresh)
         // or like in this class/example, if we have a mechanisms from the backend that notifies us if the
-        // data has changed, for example an item was inserted, deleted or modified, then we either wait
-        // for the backend to notifies us back or if feasible find the page key of the closest page to anchorPosition from
-        // either the prevKey or the nextKey; you need to handle nullability
-        // here.
-        //  * prevKey == null -> anchorPage is the first page.
-        //  * nextKey == null -> anchorPage is the last page.
-        //  * both prevKey and nextKey are null -> anchorPage is the
-        //    initial page, so return null.
+        // data has changed, for example an item was inserted, deleted or modified. Invalidate happens
+        // when this.invalidate() method is called, when this happens we need to find the closest page
+        // where the user was at, meaning this method basically returns the index of the page the user
+        // was at when invalidation happens so the load method can retrieve the key/index and refetch the
+        // new data, btw this PagingSource is passed in a factory to the Pager object, whenever we invalidate it,
+        // the factory triggers again and therefore returns a new instance of this paging source with the
+        // updated PagingState, this happens because these objects are immutable, as stated below, in
+        // the PagingSource deffinition.
+
+        // *  An instance of a [PagingSource] is used to load pages of data for an instance of [PagingData].
+        // *
+        // * A [PagingData] can grow as it loads more data, but the data loaded cannot be updated. If the
+        // * underlying data set is modified, a new [PagingSource] / [PagingData] pair must be created to
+        // * represent an updated snapshot of the data.
+
+        // BTW PagingData is what the pager produces using this source, and is what the UI receives
+        // through a flow
+
 
         // anchorPosition is the Most recently accessed index in the list, including placeholders, its
         // null if no access in the PagingData has been made yet. E.g., if this snapshot was generated
@@ -72,12 +84,17 @@ class NetworkPagingSource(
             val anchorPage = state.closestPageToPosition(anchorPosition)
 
 
+            // if prevKey == null -> anchorPage is the first page.
             anchorPage?.prevKey?.let { prevPage ->
                 Page(number = prevPage.number + 1 )
             }
+            // if nextKey == null -> anchorPage is the last page.
                 ?: anchorPage?.nextKey?.let { nextPage ->
                     Page(number = nextPage.number - 1)
                 }
+
+            // if both prevKey and nextKey are null our load should use the default key provided
+            // by th elvis operator
         }
 
         return page
