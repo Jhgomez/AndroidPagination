@@ -64,7 +64,7 @@ interface TvShowDao {
 //    @Query("DELETE * FROM TvShow WHERE id = :id")
 //    suspend fun deleteShowsWrapperByQuery(shows: List<TvShowQuery>)
 
-    @Query("DELETE * FROM TvShow WHERE id = :id")
+    @Query("DELETE FROM TvShow WHERE id = :id")
     suspend fun deleteShowsWrapperByQuery(shows: List<TvShowQuery>) {
         shows.forEach { show ->
             deleteGenres(show.genreIds)
@@ -107,11 +107,11 @@ fun TvShow.toTvShowQuery(): TvShowQuery = TvShowQuery(
 @Dao
 interface PageIndexesDao {
     @Upsert
-    fun upsert(pageIndexes: PageIndexesEntity): Int
+    suspend fun upsert(pageIndexes: PageIndexesEntity)
 
     @Query("SELECT * FROM PageIndexesEntity WHERE key = :id")
-    fun select(id: String): PageIndexesEntity?
+    suspend fun select(id: String): PageIndexesEntity?
 
-    @Query("DELTE * FROM PageIndexesEntity WHERE key = :id")
-    fun delete(id: String)
+    @Query("DELETE FROM PageIndexesEntity WHERE key = :id")
+    suspend fun delete(id: String): Int
 }
