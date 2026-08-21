@@ -80,6 +80,6 @@ class DateConverters {
 data class PageIndexesEntity(
     @PrimaryKey
     val key: String,
-    val lowestIndex: Int,
-    val highestIndex: Int
+    @ColumnInfo(defaultValue = "-1")
+    val index: Int = -1
 )
