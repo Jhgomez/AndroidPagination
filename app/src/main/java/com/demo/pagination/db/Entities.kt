@@ -75,3 +75,11 @@ class DateConverters {
         }
     }
 }
+
+@Entity
+data class PageIndexes(
+    @PrimaryKey
+    val key: String,
+    val lowestIndex: Int,
+    val highestIndex: Int
+)
