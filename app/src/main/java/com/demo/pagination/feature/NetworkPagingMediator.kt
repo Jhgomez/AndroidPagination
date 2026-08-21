@@ -15,12 +15,19 @@ import kotlin.math.ceil
 
 
 /**
- * A mediator is in charge of fetching and saving data from a remote source
+ * A mediator is in charge of fetching and saving data from a remote source when the local paging
+ * source returned by the the database doesn't have any more records. In this example I'm turning the
+ * TMDB page-keyed API into some sort of item-keyed API, I had to "force" it since TMDB can not be
+ * fetched using item-key logic, and since I want to support refresh from anywhere in the list but
+ * without loosing current lazy list state, and supporting Append and Prepend actions from wherever
+ * the list was refreshed
  */
 @OptIn(ExperimentalPagingApi::class)
 class NetworkPagingMediator(
     private val showsDb: AppDatabase,
-    private val tmdbService: TmdbService
+    private val tmdbService: TmdbService,
+    private val firstVisibleItemProducer: () -> Int,
+    private val visibleItemsCountProducer: () -> Int
 ) : RemoteMediator<Int, TvShowQuery>() {
     private val tvShowDao = showsDb.tvShowDao()
     private val pageIndexesDao: PageIndexesDao = showsDb.pageIndexesDao()
