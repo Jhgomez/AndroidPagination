@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -46,7 +47,22 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val vm = viewModel<MainVm>()
+            val state = rememberLazyListState()
+
+            val vm = viewModel<MainVm>(
+                initializer = {
+                    MainVm(
+                        application = application,
+                        firstVisibleItemProducer = {
+                            state.firstVisibleItemIndex
+                        },
+                        visibleItemsCountProducer = {
+                            state.layoutInfo.visibleItemsInfo.size
+                        }
+                    )
+                }
+            )
+
             // this was just a test to confirm I was able to communicate with the backend
 //            LaunchedEffect(Unit) {
 //                vm.getNextPage()
@@ -67,7 +83,8 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        state = state
                     ) {
                         if (shows.loadState.refresh == LoadState.Loading) { // for invalidations and refreshes
                             // careful here as rendering this UI in the lazy list when this is ture
