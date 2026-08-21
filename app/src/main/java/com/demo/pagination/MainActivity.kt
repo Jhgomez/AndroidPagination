@@ -24,16 +24,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.demo.pagination.ui.theme.PaginationTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+
+            }
+        }
+
         setContent {
             val vm = viewModel<MainVm>()
             // this was just a test to confirm I was able to communicate with the backend
@@ -85,12 +96,12 @@ class MainActivity : ComponentActivity() {
 
                             items(
                                 count = shows.itemCount,
-                                key = shows.itemKey { it.id }
+                                key = shows.itemKey { it.tvShow.id }
                             ) { index ->
                                 val show = shows[index]
                                 if (show != null) {
                                     Text(
-                                        text = index.toString(),
+                                        text = show.toString(),
                                         color = Color.White,
                                         modifier = Modifier
                                             .height(78.dp)
