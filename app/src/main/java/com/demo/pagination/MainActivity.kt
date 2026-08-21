@@ -45,7 +45,10 @@ class MainActivity : ComponentActivity() {
 
             PaginationTheme {
                 Column(Modifier.fillMaxSize()) {
-                    Button({vm.invalidate()}) {
+                    Button({
+                        vm.invalidate()
+                        shows.refresh()
+                    }) {
                         Text("Invalidate")
                     }
 

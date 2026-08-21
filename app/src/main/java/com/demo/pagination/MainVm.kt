@@ -1,7 +1,9 @@
 package com.demo.pagination
 
+import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -9,12 +11,14 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.demo.pagination.api.TvShow
 import com.demo.pagination.api.tmdbService
+import com.demo.pagination.db.TvShowQuery
+import com.demo.pagination.db.getAppDatabase
 import com.demo.pagination.feature.NetworkPagingSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.collections.addAll
 
-class MainVm: ViewModel() {
+class MainVm(application: Application): AndroidViewModel(application) {
     val service = tmdbService
 
     val shows = mutableStateListOf<TvShow>()
@@ -27,21 +31,31 @@ class MainVm: ViewModel() {
         }
     }
 
+    private var source = NetworkPagingSource(service)
+
     // see here https://developer.android.com/jetpack/androidx/releases/paging#3.5.0-alpha01
     // we have more flow options now, my current transitive dep is lower but I could use it
     val tvShowsPagingFlow: Flow<PagingData<TvShow>> = Pager(
         // Configure how data is loaded by passing additional properties to
         // PagingConfig, such as pageSize and enabling or disabling placeholders.
         config = PagingConfig(
-            pageSize = 10, // TMBD defualt page size is 20 and that cant be change, this setting doesn't do anything n this case
+            pageSize = 20, // TMBD defualt page size is 20 and that cant be change, this setting doesn't do anything n this case
             enablePlaceholders = true,
             prefetchDistance = 1,
             initialLoadSize = 1
         ),
         pagingSourceFactory = {
-            NetworkPagingSource(service)
+            source = NetworkPagingSource(service)
+            source
         }
     )
         .flow
         .cachedIn(viewModelScope)
+
+    fun invalidate() {
+        // source.invalidate() // should not call invalidate according to
+        // LazyPagingItems.refresh() documentation, we shouldn't call this from this layer, here we
+        // should call that method instead (LazyPagingItems.refresh()), and in the repository layer
+        // we should call PagingSource.Invalidate()
+    }
 }
