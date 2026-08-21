@@ -102,3 +102,15 @@ fun TvShow.toTvShowQuery(): TvShowQuery = TvShowQuery(
         )
     }
 )
+
+@Dao
+interface PageIndexesDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun upsert(pageIndexes: PageIndexesEntity)
+
+    @Query("SELECT * FROM PageIndexesEntity WHERE key = :id")
+    fun select(id: String): PageIndexesEntity
+
+    @Query("DELTE * FROM PageIndexesEntity WHERE key = :id")
+    fun delete(id: String)
+}
