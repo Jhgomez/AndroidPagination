@@ -56,6 +56,10 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (shows.loadState.refresh == LoadState.Loading) { // for invalidations and refreshes
+                            // careful here as rendering this UI in the lazy list when this is ture
+                            // will make recomposoe the below list all over again, we could gain
+                            // from already visible keys, so you might like to show this loading without
+                            // removing the whole list when it happens
                             item {
                                 CircularProgressIndicator(
                                     modifier =
