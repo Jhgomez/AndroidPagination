@@ -19,6 +19,8 @@ import androidx.sqlite.driver.AndroidSQLiteDriver
 @ColumnTypeConverters(DateConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tvShowDao(): TvShowDao
+
+    abstract fun pageIndexesDao(): PageIndexesDao
 }
 
 var database: AppDatabase? = null
