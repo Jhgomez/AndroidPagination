@@ -116,6 +116,13 @@ class NetworkPagingMediator(
                             )
                         )
 
+                        if (index == 1) {
+                            PageIndexesEntity(
+                                key = LOWEST_INDEXES_ID,
+                                index = index
+                            )
+                        }
+
                         response.body()?.results?.also {
                             tvShowDao.insertAll(
                                 Array(it.size) { index ->
