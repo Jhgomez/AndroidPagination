@@ -23,7 +23,7 @@ import kotlin.collections.addAll
 class MainVm(
     application: Application,
     private val firstVisibleItemProducer: () -> Int,
-    private val visibleItemsCountProducer: () -> Int
+    private val visibleItemsCountProducer: (Int) -> Unit
 ): AndroidViewModel(application) {
     val service = tmdbService
     val db = getAppDatabase(getApplication<Application>().applicationContext)
@@ -61,7 +61,7 @@ class MainVm(
             showsDb = db,
             tmdbService = service,
             firstVisibleItemProducer = firstVisibleItemProducer,
-            visibleItemsCountProducer = visibleItemsCountProducer
+            jumpToPrevIndex = visibleItemsCountProducer
         )
     )
         .flow

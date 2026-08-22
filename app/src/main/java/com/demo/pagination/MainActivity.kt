@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,15 +54,20 @@ class MainActivity : ComponentActivity() {
         setContent {
             val state = rememberLazyListState()
 
+            val coroutineScope = rememberCoroutineScope()
+
             val vm = viewModel<MainVm>(
                 initializer = {
                     MainVm(
                         application = application,
-                        firstVisibleItemProducer = {
+                        firstVisibleItemProducer = { // doesn't work, remote mediator design is not perfect its been experimental for too long
                             state.firstVisibleItemIndex
                         },
-                        visibleItemsCountProducer = {
-                            state.layoutInfo.visibleItemsInfo.size
+                        visibleItemsCountProducer = { // rename
+                            coroutineScope.launch {
+                                state.stopScroll()
+                                state.scrollToItem(it)
+                            }
                         }
                     )
                 }
