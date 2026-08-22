@@ -1,6 +1,5 @@
 package com.demo.pagination.feature
 
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -21,20 +20,24 @@ import kotlin.math.ceil
  * TMDB page-keyed API into some sort of item-keyed API, I had to "force" it since TMDB can not be
  * fetched using item-key logic, and since I want to support refresh from anywhere in the list but
  * without loosing current lazy list state, and supporting Append and Prepend actions from wherever
- * the list was refreshed
+ * the list was refreshed. I used V 3.4.2 of paging to create this but there is no way to create a
+ * solution that can handle PREPEND other than returning the end of paging, so refresh basically
+ * is forced to return to the top of the list, changing that behavior is pretty much impossible
  */
 @OptIn(ExperimentalPagingApi::class)
 class NetworkPagingMediator(
     private val showsDb: AppDatabase,
     private val tmdbService: TmdbService,
     private val firstVisibleItemProducer: () -> Int,
-    private val visibleItemsCountProducer: () -> Int
+    private val jumpToPrevIndex: (Int) -> Unit
 ) : RemoteMediator<Int, TvShowQuery>() {
     private val tvShowDao = showsDb.tvShowDao()
     private val pageIndexesDao: PageIndexesDao = showsDb.pageIndexesDao()
 
     private val HIGHEST_INDEXES_ID = "HIGHEST_INDEX"
     private val LOWEST_INDEXES_ID = "LOWEST_INDEX"
+
+    var firstVisibleItem = -1
 
     @OptIn(ExperimentalPagingApi::class)
     override suspend fun load(
@@ -47,7 +50,7 @@ class NetworkPagingMediator(
         val lowestIndexInfo: PageIndexesEntity? =
             pageIndexesDao.select(LOWEST_INDEXES_ID)
 
-        var firstVisibleItem = -1
+
         var visibleItemsCount = -1
 
         return try {
@@ -65,7 +68,6 @@ class NetworkPagingMediator(
                     val pagerPageIndex = visibleItemsPageIndex.coerceAtLeast(1)
 
                     firstVisibleItem = firstVisibleItemProducer() - ((pagerPageIndex - 1) * state.config.pageSize)
-                    visibleItemsCount = firstVisibleItemProducer()
 
                     pagerPageIndex
 
@@ -94,8 +96,34 @@ class NetworkPagingMediator(
                 // In this example, you never need to prepend, since REFRESH
                 // will always load the first page in the list. Immediately
                 // return, reporting end of pagination.
-                LoadType.PREPEND ->
-                    null
+                LoadType.PREPEND -> {
+                    if (lowestIndexInfo?.index != null) {
+                        if (lowestIndexInfo.index > 1) {
+
+                            firstVisibleItem = firstVisibleItemProducer() +  state.config.pageSize
+
+                            lowestIndexInfo.index - 1
+                        } else {
+                            if (firstVisibleItem >= 0) {
+                                jumpToPrevIndex(firstVisibleItem)
+                                firstVisibleItem = -1
+                            }
+
+                            return MediatorResult.Success(
+                                endOfPaginationReached = true
+                            )
+                        }
+                    } else {
+                        if (firstVisibleItem >= 0) {
+                            jumpToPrevIndex(firstVisibleItem)
+                            firstVisibleItem = -1
+                        }
+
+                        return MediatorResult.Success(
+                            endOfPaginationReached = false
+                        )
+                    }
+                }
                 LoadType.APPEND -> {
 
                     // The logic that determines what is the last item could be anything but in our
@@ -121,7 +149,27 @@ class NetworkPagingMediator(
 
                     when (loadType) {
 //                    userDao.deleteShowsWrapper()
-                        LoadType.PREPEND -> TODO()
+                        LoadType.PREPEND -> {
+                            response.body()?.results?.also {
+                                val baseIndex = (pageIndex - 1) * state.config.pageSize
+                                tvShowDao.insertAll(
+                                    Array(it.size) { listIndex ->
+                                        it[listIndex].toTvShowQuery(listIndex + baseIndex)
+                                    }
+                                )
+                            }
+
+                            pageIndexesDao.upsert(
+                                PageIndexesEntity(
+                                    key = LOWEST_INDEXES_ID,
+                                    index = pageIndex
+                                )
+                            )
+
+                            if (firstVisibleItem != -1) {
+                                jumpToPrevIndex(firstVisibleItem)
+                            }
+                        }
                         LoadType.REFRESH -> {
                             if (highestIndexInfo != null && lowestIndexInfo != null) {
                                 // this means data already exists and we need to delete it
@@ -129,14 +177,16 @@ class NetworkPagingMediator(
                                 pageIndexesDao.deleteAll()
                             }
 
-                            response.body()?.results?.copyOfRange(firstVisibleItem, state.config.pageSize -1)?.also {
+                            response.body()?.results?.also {
                                 val baseIndex = (pageIndex - 1) * state.config.pageSize
                                 tvShowDao.insertAll(
                                     Array(it.size) { listIndex ->
-                                        it[listIndex].toTvShowQuery(firstVisibleItem + listIndex + baseIndex)
+                                        it[listIndex].toTvShowQuery(listIndex + baseIndex)
                                     }
                                 )
                             }
+
+//                            jumpToPrevIndex(12)
 
                             pageIndexesDao.upsert(
                                 PageIndexesEntity(
@@ -178,13 +228,18 @@ class NetworkPagingMediator(
                                     )
                                 )
                             }
+
+                            if (firstVisibleItem >= 0) {
+                                jumpToPrevIndex(firstVisibleItem)
+                                firstVisibleItem = -1
+                            }
                         }
                     }
                 }
             }
 
             MediatorResult.Success(
-                endOfPaginationReached = pageIndex == 500
+                endOfPaginationReached = loadType == LoadType.REFRESH || pageIndex == 500
             )
         } catch (e: Exception) {
             MediatorResult.Error(e)
