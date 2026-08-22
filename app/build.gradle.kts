@@ -78,7 +78,9 @@ dependencies {
     // optional - Paging 3 Integration
     implementation("androidx.room3:room3-paging:${room_version}") // add "androidx.paging:paging-common" transitively
 
-    val paging_version = "3.4.2"
+    // remote mediator in this version behaves really wwird and can barely be customized, paging source works greate but eediator is awful
+    //val paging_version = "3.4.2"
+    val paging_version = "3.5.1"
 
     // Jetpack Compose integration
     implementation("androidx.paging:paging-compose:$paging_version")
