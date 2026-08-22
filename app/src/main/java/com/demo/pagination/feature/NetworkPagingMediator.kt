@@ -133,7 +133,7 @@ class NetworkPagingMediator(
                                 val baseIndex = (pageIndex - 1) * state.config.pageSize
                                 tvShowDao.insertAll(
                                     Array(it.size) { listIndex ->
-                                        it[listIndex].toTvShowQuery(listIndex + baseIndex)
+                                        it[listIndex].toTvShowQuery(firstVisibleItem + listIndex + baseIndex)
                                     }
                                 )
                             }
