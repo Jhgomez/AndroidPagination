@@ -23,6 +23,13 @@ import kotlin.math.ceil
  * the list was refreshed. I used V 3.4.2 of paging to create this but there is no way to create a
  * solution that can handle PREPEND other than returning the end of paging, so refresh basically
  * is forced to return to the top of the list, changing that behavior is pretty much impossible
+ * It also seems that remote mediator has been experimental for over 4 years at leas and still is in
+ * its latest version 3.5.1, so this doesn't worth using if you want to implement Prepend, what looks
+ * good about the latest update is that now a pager can return a state flow I think which allows us
+ * to combine it with another states in the VM, for prepend solution better use Room's built in
+ * paging source with a lazy column state that you can monitor for index 0 and last index to check
+ * with the backend if there is a previous key or next key but remember paging sources are immutable
+ * so they everytime an item is added, deleted, modified, moved, a new paging source is generated
  */
 @OptIn(ExperimentalPagingApi::class)
 class NetworkPagingMediator(
